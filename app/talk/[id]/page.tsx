@@ -95,27 +95,31 @@ export default function TalkPage() {
       }
     }
   }, [])
+const handleSendMessage = useCallback(async (text: string, isSystemTriggered = false) => {
+  if (!text.trim() || !kid) return
 
-  const handleSendMessage = useCallback(async (text: string) => {
-    if (!text.trim() || !kid) return
+  setIsProcessing(true)
+  setError(null)
 
-    setIsProcessing(true)
-    setError(null)
-
-    const newMessages: Message[] = [...messages, { role: "user", content: text }]
+  let newMessages: Message[] = messages
+  if (!isSystemTriggered) {
+    newMessages = [...messages, { role: "user", content: text }]
     setMessages(newMessages)
+  }
 
-    try {
-      const response = await fetch("/api/voice/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text,
-          kidName: kid.firstName,
-          voiceId: selectedVoice,
-          history: messages,
-        }),
-      })
+  try {
+    const response = await fetch("/api/voice/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text: isSystemTriggered ? `[SYSTEM: The parent just finished a ${text}. Respond warmly to this achievement in Japanese.]` : text,
+        kidName: kid.firstName,
+        kidId: kid.id,
+        voiceId: selectedVoice,
+        history: messages,
+      }),
+    })
+
 
       const data = await response.json()
       console.log("API response:", { text: data.text, hasAudio: !!data.audio, audioLength: data.audio?.length })
