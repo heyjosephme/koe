@@ -6,6 +6,7 @@ import { ArrowLeft, Check, X, RotateCcw, Trophy } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { EXERCISES, MODE_INFO, type ExerciseMode, type Exercise } from "@/lib/exercises"
+import { getKids } from "@/lib/store"
 import { cn } from "@/lib/utils"
 
 export default function ExercisePage() {
