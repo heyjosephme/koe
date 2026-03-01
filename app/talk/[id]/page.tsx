@@ -275,16 +275,16 @@ export default function TalkPage() {
       <div className="border-t border-[#E8D4C4] bg-white px-4 py-3">
         <div className="mx-auto flex max-w-md justify-between">
           {[
-            { icon: "①", label: "Logic Q" },
-            { icon: "②", label: "Analytic Q" },
-            { icon: "③", label: "Listening" },
-            { icon: "④", label: "Italian" },
-            { icon: "⑤", label: "End" },
+            { icon: "🧠", label: "Logic Q", path: "/exercise/logic" },
+            { icon: "📊", label: "Analytic Q", path: "/exercise/analytic" },
+            { icon: "👂", label: "Listening", path: "/exercise/listening" },
+            { icon: "🇮🇹", label: "Italian", path: "/exercise/italian" },
+            { icon: "🔚", label: "End", path: null },
           ].map((mode) => (
             <button
               key={mode.label}
               type="button"
-              onClick={() => mode.label === "End" && endCall()}
+              onClick={() => mode.path ? router.push(mode.path) : endCall()}
               className="flex items-center gap-1 rounded-full bg-[#2D2D2D] px-3 py-2 text-xs text-white transition-all hover:bg-[#4D4D4D]"
             >
               <span>{mode.icon}</span>
