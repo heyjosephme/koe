@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft, Mic, MicOff, Phone, Volume2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { NotificationToast } from "@/components/notification-toast"
 import { getKid } from "@/lib/store"
 import type { Kid } from "@/lib/types"
 
@@ -23,6 +24,7 @@ export default function TalkPage() {
   const [lastResponse, setLastResponse] = useState("")
   const [messages, setMessages] = useState<Message[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [showNotification, setShowNotification] = useState(true)
 
   const recognitionRef = useRef<SpeechRecognition | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -175,6 +177,14 @@ export default function TalkPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#FDF8F4]">
+      {/* Smart Check-in Notification */}
+      {showNotification && kid && (
+        <NotificationToast
+          kidName={kid.firstName}
+          onClose={() => setShowNotification(false)}
+        />
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4">
         <Button
