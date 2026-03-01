@@ -4,9 +4,17 @@ import { useEffect, useState, useRef, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft, Mic, MicOff, Phone, Volume2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { NotificationToast } from "@/components/notification-toast"
 import { getKid } from "@/lib/store"
 import { useAgora } from "@/lib/useAgora"
+import { VOICES, DEFAULT_VOICE_ID } from "@/lib/voices"
 import type { Kid } from "@/lib/types"
 
 interface Message {
@@ -26,6 +34,7 @@ export default function TalkPage() {
   const [messages, setMessages] = useState<Message[]>([])
   const [error, setError] = useState<string | null>(null)
   const [showNotification, setShowNotification] = useState(true)
+  const [selectedVoice, setSelectedVoice] = useState(DEFAULT_VOICE_ID)
 
   const recognitionRef = useRef<SpeechRecognition | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -103,6 +112,7 @@ export default function TalkPage() {
         body: JSON.stringify({
           text,
           kidName: kid.firstName,
+          voiceId: selectedVoice,
           history: messages,
         }),
       })
@@ -132,7 +142,7 @@ export default function TalkPage() {
       setIsProcessing(false)
       setTranscript("")
     }
-  }, [kid, messages])
+  }, [kid, messages, selectedVoice])
 
   // Keep ref updated
   useEffect(() => {
@@ -274,7 +284,40 @@ export default function TalkPage() {
         </div>
 
         <h1 className="mb-1 text-2xl font-bold text-[#2D2D2D]">{kid.firstName}</h1>
-        <p className="mb-4 text-sm text-[#8B8B8B]">{getStatusText()}</p>
+        <p className="mb-2 text-sm text-[#8B8B8B]">{getStatusText()}</p>
+
+        {/* Voice Selector */}
+        <div className="mb-4 flex items-center gap-2">
+          <span className="text-xs text-[#8B8B8B]">🎤</span>
+          <Select value={selectedVoice} onValueChange={setSelectedVoice}>
+            <SelectTrigger className="w-48 rounded-xl border-[#E8D4C4] bg-white text-sm">
+              <SelectValue placeholder="Select voice" />
+            </SelectTrigger>
+            <SelectContent>
+              {VOICES.filter((v) => v.type === "custom").length > 0 && (
+                <>
+                  <div className="px-2 py-1.5 text-xs font-semibold text-[#C4775C]">
+                    Custom Voices
+                  </div>
+                  {VOICES.filter((v) => v.type === "custom").map((voice) => (
+                    <SelectItem key={voice.id} value={voice.id}>
+                      ⭐ {voice.nameJa}
+                    </SelectItem>
+                  ))}
+                  <div className="my-1 border-t border-[#E8D4C4]" />
+                </>
+              )}
+              <div className="px-2 py-1.5 text-xs font-semibold text-[#8B8B8B]">
+                Preset Voices
+              </div>
+              {VOICES.filter((v) => v.type === "preset").map((voice) => (
+                <SelectItem key={voice.id} value={voice.id}>
+                  {voice.nameJa}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
         {/* Transcript display */}
         {transcript && (

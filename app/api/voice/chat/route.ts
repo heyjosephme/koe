@@ -4,7 +4,7 @@ const API_BASE = "https://api.minimax.io/v1"
 
 export async function POST(request: NextRequest) {
   try {
-    const { text, kidName, history = [] } = await request.json()
+    const { text, kidName, voiceId = "male-qn-qingse", history = [] } = await request.json()
 
     if (!text) {
       return NextResponse.json({ error: "No text provided" }, { status: 400 })
@@ -75,8 +75,8 @@ export async function POST(request: NextRequest) {
         model: "speech-02-turbo",
         text: replyText,
         voice_setting: {
-          voice_id: "male-qn-qingse", // Young male voice
-          speed: 0.9,
+          voice_id: voiceId,
+          speed: 1.0,
           vol: 1.0,
           pitch: 0,
         },
