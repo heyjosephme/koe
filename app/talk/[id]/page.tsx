@@ -89,6 +89,7 @@ export default function TalkPage() {
         body: JSON.stringify({
           text,
           kidName: kid.firstName,
+          kidId: kid.id,
           history: messages,
         }),
       })

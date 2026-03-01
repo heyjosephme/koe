@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
+import {
+  saveConversation,
+  getRecentConversations,
+  generateSimpleEmbedding,
+} from "@/lib/zilliz"
 
 const API_BASE = "https://api.minimax.io/v1"
 
 export async function POST(request: NextRequest) {
   try {
-    const { text, kidName, history = [] } = await request.json()
+    const { text, kidName, kidId, history = [] } = await request.json()
 
     if (!text) {
       return NextResponse.json({ error: "No text provided" }, { status: 400 })
@@ -20,10 +25,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Get conversation history from Zilliz (if configured)
+    let contextHistory = history
+    if (kidId) {
+      const zillizHistory = await getRecentConversations(kidId, 5)
+      if (zillizHistory.length > 0) {
+        contextHistory = [...zillizHistory, ...history]
+      }
+    }
+
     // 1. Generate response with LLM
     const systemPrompt = `あなたは${kidName}です。高齢の親と話している優しい子供として振る舞ってください。
 日本語で温かく自然に話してください。返答は短く会話的に（1〜2文）。
-親の一日や健康について心からの関心を示してください。`
+親の一日や健康について心からの関心を示してください。
+過去の会話を覚えていて、それに基づいて会話を続けてください。`
 
     const chatResponse = await fetch(
       `${API_BASE}/text/chatcompletion_v2?GroupId=${groupId}`,
@@ -37,7 +52,7 @@ export async function POST(request: NextRequest) {
           model: "abab6.5s-chat",
           messages: [
             { sender_type: "BOT", sender_name: "system", text: systemPrompt },
-            ...history.map((m: { role: string; content: string }) => ({
+            ...contextHistory.map((m: { role: string; content: string }) => ({
               sender_type: m.role === "user" ? "USER" : "BOT",
               sender_name: m.role === "user" ? "parent" : kidName,
               text: m.content,
@@ -57,7 +72,21 @@ export async function POST(request: NextRequest) {
     }
 
     const chatData = await chatResponse.json()
-    const replyText = chatData.reply || chatData.choices?.[0]?.message?.content || "すみません、聞き取れませんでした。"
+    const replyText =
+      chatData.reply ||
+      chatData.choices?.[0]?.message?.content ||
+      "すみません、聞き取れませんでした。"
+
+    // Save conversation to Zilliz (if configured)
+    if (kidId) {
+      const userEmbedding = generateSimpleEmbedding(text)
+      const assistantEmbedding = generateSimpleEmbedding(replyText)
+
+      await Promise.all([
+        saveConversation(kidId, "user", text, userEmbedding),
+        saveConversation(kidId, "assistant", replyText, assistantEmbedding),
+      ])
+    }
 
     // 2. Convert response to speech
     const ttsResponse = await fetch(`${API_BASE}/t2a_v2?GroupId=${groupId}`, {
