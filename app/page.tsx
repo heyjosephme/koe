@@ -160,10 +160,9 @@ export default function Home() {
       <div className="border-t border-[#E8D4C4] bg-white px-4 py-3">
         <div className="mx-auto flex max-w-md justify-between">
           {[
-            { icon: "🧠", label: "Logic Q", path: "/exercise/logic" },
-            { icon: "📊", label: "Analytic Q", path: "/exercise/analytic" },
-            { icon: "👂", label: "Listening", path: "/exercise/listening" },
-            { icon: "🇮🇹", label: "Italian", path: "/exercise/italian" },
+            { icon: "🧠", label: "Logic", path: "/exercise/logic" },
+            { icon: "📊", label: "Analytic", path: "/exercise/analytic" },
+            { icon: "🌐", label: "Language", path: "/exercise/language" },
           ].map((mode) => (
             <button
               key={mode.label}

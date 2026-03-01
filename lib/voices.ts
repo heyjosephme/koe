@@ -15,8 +15,8 @@ export const VOICES: Voice[] = [
   { id: "presenter_female", name: "Female Presenter", nameJa: "女性アナウンサー", type: "preset" },
   {
   id: "custom_serjio_1772353671594",
-  name: "Serjio",
-  nameJa: "Serjioの声",
+  name: "Sergio",
+  nameJa: "Sergioの声",
   type: "custom"
 },
 

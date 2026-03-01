@@ -61,6 +61,15 @@ export default function ExercisePage() {
     setCompleted(false)
   }
 
+  const [lastKidId, setLastKidId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const kids = getKids()
+    if (kids.length > 0) {
+      setLastKidId(kids[0].id)
+    }
+  }, [])
+
   if (completed) {
     const percentage = Math.round((score / exercises.length) * 100)
     return (
@@ -93,21 +102,35 @@ export default function ExercisePage() {
             <p className="mt-2 text-[#8B8B8B]">{percentage}% correct</p>
           </div>
 
-          <div className="flex gap-3">
-            <Button
-              onClick={handleRestart}
-              variant="outline"
-              className="rounded-xl px-6 py-5"
-            >
-              <RotateCcw className="mr-2 size-4" />
-              もう一度
-            </Button>
-            <Button
-              onClick={() => router.push("/")}
-              className="rounded-xl bg-[#C4775C] px-6 py-5 hover:bg-[#B56A50]"
-            >
-              ホームへ
-            </Button>
+          <div className="flex flex-col gap-3 w-full max-w-[280px]">
+            {lastKidId && (
+              <Button
+                onClick={() => router.push(`/talk/${lastKidId}?score=${score}&mode=${mode}`)}
+                className="rounded-xl bg-[#C4775C] py-7 text-lg hover:bg-[#B56A50]"
+              >
+                <div className="flex items-center gap-2">
+                  <span>💬</span>
+                  <span>報告する (Tell your kid!)</span>
+                </div>
+              </Button>
+            )}
+            <div className="flex gap-2">
+              <Button
+                onClick={handleRestart}
+                variant="outline"
+                className="flex-1 rounded-xl py-5"
+              >
+                <RotateCcw className="mr-2 size-4" />
+                もう一度
+              </Button>
+              <Button
+                onClick={() => router.push("/")}
+                variant="secondary"
+                className="flex-1 rounded-xl py-5"
+              >
+                ホームへ
+              </Button>
+            </div>
           </div>
         </div>
       </div>
