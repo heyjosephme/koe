@@ -6,6 +6,7 @@ import { ArrowLeft, Mic, MicOff, Phone, Volume2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { NotificationToast } from "@/components/notification-toast"
 import { getKid } from "@/lib/store"
+import { useAgora } from "@/lib/useAgora"
 import type { Kid } from "@/lib/types"
 
 interface Message {
@@ -30,6 +31,10 @@ export default function TalkPage() {
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const handleSendRef = useRef<(text: string) => void>(() => {})
 
+  // Agora for real-time voice channel
+  // Use fixed channel name for demo (must match token's channel name)
+  const agora = useAgora({ channelName: "koe-test" })
+
   useEffect(() => {
     const loadedKid = getKid(params.id as string)
     if (loadedKid) {
@@ -38,6 +43,13 @@ export default function TalkPage() {
       router.push("/")
     }
   }, [params.id, router])
+
+  // Auto-join Agora channel when page loads
+  useEffect(() => {
+    if (kid && agora.hasAppId && !agora.isConnected && !agora.isConnecting) {
+      agora.join()
+    }
+  }, [kid, agora])
 
   // Initialize speech recognition
   useEffect(() => {
@@ -173,9 +185,13 @@ export default function TalkPage() {
     }
   }
 
-  const endCall = () => {
+  const endCall = async () => {
     if (recognitionRef.current) {
       recognitionRef.current.stop()
+    }
+    // Leave Agora channel
+    if (agora.isConnected) {
+      await agora.leave()
     }
     if (audioRef.current) {
       audioRef.current.pause()
@@ -218,8 +234,19 @@ export default function TalkPage() {
         >
           <ArrowLeft className="size-5" />
         </Button>
-        <div className="text-sm text-[#8B8B8B]">
-          {isProcessing ? "Processing..." : isSpeaking ? "Speaking..." : "Ready"}
+        <div className="flex items-center gap-2 text-sm">
+          {agora.isConnected && (
+            <span className="flex items-center gap-1 text-green-600">
+              <span className="size-2 rounded-full bg-green-500 animate-pulse" />
+              Agora
+            </span>
+          )}
+          {agora.isConnecting && (
+            <span className="text-yellow-600">Connecting...</span>
+          )}
+          <span className="text-[#8B8B8B]">
+            {isProcessing ? "Processing..." : isSpeaking ? "Speaking..." : "Ready"}
+          </span>
         </div>
       </div>
 
@@ -264,9 +291,9 @@ export default function TalkPage() {
         )}
 
         {/* Error display */}
-        {error && (
+        {(error || agora.error) && (
           <div className="mb-4 rounded-xl bg-red-100 px-4 py-2 text-sm text-red-600">
-            {error}
+            {error || agora.error}
           </div>
         )}
 
