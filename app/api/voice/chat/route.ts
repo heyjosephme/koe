@@ -20,11 +20,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 1. Generate response with LLM
+    // 1. Generate response with LLM (OpenAI-compatible format)
     const systemPrompt = `あなたは${kidName}です。高齢の親と話している優しい子供として振る舞ってください。
 日本語で温かく自然に話してください。返答は短く会話的に（1〜2文）。
-親の一日や健康について心からの関心を示してください。
-過去の会話を覚えていて、それに基づいて会話を続けてください。`
+親の一日や健康について心からの関心を示してください。`
 
     const chatResponse = await fetch(
       `${API_BASE}/text/chatcompletion_v2?GroupId=${groupId}`,
@@ -35,17 +34,16 @@ export async function POST(request: NextRequest) {
           Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: "abab6.5s-chat",
+          model: "MiniMax-Text-01",
           messages: [
-            { sender_type: "BOT", sender_name: "system", text: systemPrompt },
+            { role: "system", content: systemPrompt },
             ...history.map((m: { role: string; content: string }) => ({
-              sender_type: m.role === "user" ? "USER" : "BOT",
-              sender_name: m.role === "user" ? "parent" : kidName,
-              text: m.content,
+              role: m.role,
+              content: m.content,
             })),
-            { sender_type: "USER", sender_name: "parent", text },
+            { role: "user", content: text },
           ],
-          tokens_to_generate: 150,
+          max_tokens: 150,
           temperature: 0.8,
         }),
       }
@@ -58,9 +56,12 @@ export async function POST(request: NextRequest) {
     }
 
     const chatData = await chatResponse.json()
+    console.log("MiniMax chat response:", JSON.stringify(chatData, null, 2))
+
     const replyText =
       chatData.reply ||
       chatData.choices?.[0]?.message?.content ||
+      chatData.choices?.[0]?.text ||
       "すみません、聞き取れませんでした。"
 
     // 2. Convert response to speech
