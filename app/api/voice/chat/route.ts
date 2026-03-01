@@ -1,15 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
-import {
-  saveConversation,
-  getRecentConversations,
-  generateSimpleEmbedding,
-} from "@/lib/zilliz"
 
 const API_BASE = "https://api.minimax.io/v1"
 
 export async function POST(request: NextRequest) {
   try {
-    const { text, kidName, kidId, history = [] } = await request.json()
+    const { text, kidName, history = [] } = await request.json()
 
     if (!text) {
       return NextResponse.json({ error: "No text provided" }, { status: 400 })
@@ -18,20 +13,11 @@ export async function POST(request: NextRequest) {
     const apiKey = process.env.MINIMAX_API_KEY
     const groupId = process.env.MINIMAX_GROUP_ID
 
-    if (!apiKey) {
+    if (!apiKey || !groupId) {
       return NextResponse.json(
-        { error: "MiniMax API key not configured" },
+        { error: "MiniMax API key or Group ID not configured" },
         { status: 500 }
       )
-    }
-
-    // Get conversation history from Zilliz (if configured)
-    let contextHistory = history
-    if (kidId) {
-      const zillizHistory = await getRecentConversations(kidId, 5)
-      if (zillizHistory.length > 0) {
-        contextHistory = [...zillizHistory, ...history]
-      }
     }
 
     // 1. Generate response with LLM
@@ -52,7 +38,7 @@ export async function POST(request: NextRequest) {
           model: "abab6.5s-chat",
           messages: [
             { sender_type: "BOT", sender_name: "system", text: systemPrompt },
-            ...contextHistory.map((m: { role: string; content: string }) => ({
+            ...history.map((m: { role: string; content: string }) => ({
               sender_type: m.role === "user" ? "USER" : "BOT",
               sender_name: m.role === "user" ? "parent" : kidName,
               text: m.content,
@@ -76,17 +62,6 @@ export async function POST(request: NextRequest) {
       chatData.reply ||
       chatData.choices?.[0]?.message?.content ||
       "すみません、聞き取れませんでした。"
-
-    // Save conversation to Zilliz (if configured)
-    if (kidId) {
-      const userEmbedding = generateSimpleEmbedding(text)
-      const assistantEmbedding = generateSimpleEmbedding(replyText)
-
-      await Promise.all([
-        saveConversation(kidId, "user", text, userEmbedding),
-        saveConversation(kidId, "assistant", replyText, assistantEmbedding),
-      ])
-    }
 
     // 2. Convert response to speech
     const ttsResponse = await fetch(`${API_BASE}/t2a_v2?GroupId=${groupId}`, {

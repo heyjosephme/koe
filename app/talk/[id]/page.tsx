@@ -28,6 +28,7 @@ export default function TalkPage() {
 
   const recognitionRef = useRef<SpeechRecognition | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
+  const handleSendRef = useRef<(text: string) => void>(() => {})
 
   useEffect(() => {
     const loadedKid = getKid(params.id as string)
@@ -54,7 +55,8 @@ export default function TalkPage() {
           setTranscript(result[0].transcript)
 
           if (result.isFinal) {
-            handleSendMessage(result[0].transcript)
+            console.log("Final transcript:", result[0].transcript)
+            handleSendRef.current(result[0].transcript)
           }
         }
 
@@ -89,12 +91,12 @@ export default function TalkPage() {
         body: JSON.stringify({
           text,
           kidName: kid.firstName,
-          kidId: kid.id,
           history: messages,
         }),
       })
 
       const data = await response.json()
+      console.log("API response:", { text: data.text, hasAudio: !!data.audio, audioLength: data.audio?.length })
 
       if (data.error) {
         setError(data.error)
@@ -106,7 +108,10 @@ export default function TalkPage() {
 
       // Play audio response
       if (data.audio) {
+        console.log("Playing audio...")
         playAudio(data.audio)
+      } else {
+        console.log("No audio in response")
       }
     } catch (err) {
       console.error("Chat error:", err)
@@ -117,19 +122,36 @@ export default function TalkPage() {
     }
   }, [kid, messages])
 
-  const playAudio = (base64Audio: string) => {
+  // Keep ref updated
+  useEffect(() => {
+    handleSendRef.current = handleSendMessage
+  }, [handleSendMessage])
+
+  const playAudio = (hexAudio: string) => {
     try {
+      console.log("playAudio called, hex length:", hexAudio.length)
       setIsSpeaking(true)
-      const audio = new Audio(`data:audio/mp3;base64,${base64Audio}`)
+      // Convert hex to binary
+      const bytes = new Uint8Array(hexAudio.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)))
+      console.log("Converted to bytes:", bytes.length)
+      const blob = new Blob([bytes], { type: "audio/mp3" })
+      const audioUrl = URL.createObjectURL(blob)
+      console.log("Audio URL created:", audioUrl)
+      const audio = new Audio(audioUrl)
       audioRef.current = audio
 
-      audio.onended = () => setIsSpeaking(false)
-      audio.onerror = () => {
+      audio.onended = () => {
+        console.log("Audio ended")
         setIsSpeaking(false)
-        console.error("Audio playback error")
+        URL.revokeObjectURL(audioUrl)
+      }
+      audio.onerror = (e) => {
+        console.error("Audio playback error:", e)
+        setIsSpeaking(false)
+        URL.revokeObjectURL(audioUrl)
       }
 
-      audio.play()
+      audio.play().then(() => console.log("Audio playing")).catch(e => console.error("Play failed:", e))
     } catch (err) {
       console.error("Audio error:", err)
       setIsSpeaking(false)
