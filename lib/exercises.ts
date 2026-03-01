@@ -1,4 +1,4 @@
-export type ExerciseMode = "logic" | "analytic" | "listening" | "italian"
+export type ExerciseMode = "logic" | "analytic" | "language"
 
 export interface Exercise {
   id: string
@@ -69,29 +69,9 @@ export const EXERCISES: Record<ExerciseMode, Exercise[]> = {
       explanationJa: "春、夏、秋、冬の4つです。",
     },
   ],
-  listening: [
+  language: [
     {
-      id: "listen-1",
-      question: "Listen and repeat: 'おはようございます' (Good morning)",
-      questionJa: "聞いて繰り返してください：「おはようございます」",
-      options: ["できました (Done)", "もう一度 (Again)"],
-      correctIndex: 0,
-      explanation: "Great job practicing!",
-      explanationJa: "よくできました！",
-    },
-    {
-      id: "listen-2",
-      question: "Listen and repeat: 'お元気ですか' (How are you?)",
-      questionJa: "聞いて繰り返してください：「お元気ですか」",
-      options: ["できました (Done)", "もう一度 (Again)"],
-      correctIndex: 0,
-      explanation: "Excellent pronunciation practice!",
-      explanationJa: "発音の練習、素晴らしいです！",
-    },
-  ],
-  italian: [
-    {
-      id: "italian-1",
+      id: "lang-1",
       question: "How do you say 'Hello' in Italian?",
       questionJa: "イタリア語で「こんにちは」は何と言いますか？",
       options: ["Ciao", "Grazie", "Arrivederci", "Prego"],
@@ -100,29 +80,28 @@ export const EXERCISES: Record<ExerciseMode, Exercise[]> = {
       explanationJa: "「Ciao」はイタリア語で「こんにちは」（カジュアル）です。",
     },
     {
-      id: "italian-2",
-      question: "How do you say 'Thank you' in Italian?",
-      questionJa: "イタリア語で「ありがとう」は何と言いますか？",
-      options: ["Ciao", "Grazie", "Buongiorno", "Scusa"],
-      correctIndex: 1,
-      explanation: "'Grazie' means Thank you in Italian.",
-      explanationJa: "「Grazie」はイタリア語で「ありがとう」です。",
+      id: "lang-2",
+      question: "How do you say 'Thank you' in French?",
+      questionJa: "フランス語で「ありがとう」は何と言いますか？",
+      options: ["Merci", "Gracias", "Danke", "Prego"],
+      correctIndex: 0,
+      explanation: "'Merci' means Thank you in French.",
+      explanationJa: "「Merci」はフランス語で「ありがとう」です。",
     },
     {
-      id: "italian-3",
-      question: "How do you say 'Good morning' in Italian?",
-      questionJa: "イタリア語で「おはようございます」は何と言いますか？",
-      options: ["Buonasera", "Buonanotte", "Buongiorno", "Ciao"],
-      correctIndex: 2,
-      explanation: "'Buongiorno' means Good morning in Italian.",
-      explanationJa: "「Buongiorno」はイタリア語で「おはようございます」です。",
+      id: "lang-3",
+      question: "How do you say 'Good morning' in German?",
+      questionJa: "ドイツ語で「おはようございます」は何と言いますか？",
+      options: ["Guten Morgen", "Bonjour", "Buenos Días", "Ciao"],
+      correctIndex: 0,
+      explanation: "'Guten Morgen' means Good morning in German.",
+      explanationJa: "「Guten Morgen」はドイツ語で「おはようございます」です。",
     },
   ],
 }
 
 export const MODE_INFO: Record<ExerciseMode, { icon: string; label: string; labelJa: string; color: string }> = {
-  logic: { icon: "🧠", label: "Logic Q", labelJa: "論理問題", color: "#6366F1" },
-  analytic: { icon: "📊", label: "Analytic Q", labelJa: "分析問題", color: "#8B5CF6" },
-  listening: { icon: "👂", label: "Listening", labelJa: "リスニング", color: "#EC4899" },
-  italian: { icon: "🇮🇹", label: "Italian", labelJa: "イタリア語", color: "#10B981" },
+  logic: { icon: "🧠", label: "Logic", labelJa: "論理問題", color: "#6366F1" },
+  analytic: { icon: "📊", label: "Analytic", labelJa: "分析問題", color: "#8B5CF6" },
+  language: { icon: "🌐", label: "Language", labelJa: "外国語", color: "#10B981" },
 }
